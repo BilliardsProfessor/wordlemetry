@@ -273,6 +273,31 @@
         expectEqual(ranked[0].averageBucketSize, 1);
       },
     },
+
+    {
+      name: "trap detection: identifies single-position candidate family",
+      run: () => {
+        const result = window.WordlemetryDiagnostics.analyzeTrapGroup(["batch", "catch", "hatch", "match", "patch", "watch"]);
+
+        expectEqual(result.candidateCount, 6);
+        expectEqual(result.variablePositionCount, 1);
+        expectEqual(result.variablePositions.length, 1);
+        expectEqual(result.variablePositions[0].index, 0);
+        expectEqual(result.variablePositions[0].count, 6);
+        expectArrayEqual(result.variablePositions[0].letters, ["b", "c", "h", "m", "p", "w"]);
+        expectEqual(result.isLikelyTrap, true);
+      },
+    },
+    {
+      name: "trap detection: does not flag broad mixed candidate family",
+      run: () => {
+        const result = window.WordlemetryDiagnostics.analyzeTrapGroup(["crane", "trace", "slate", "crony"]);
+
+        expectEqual(result.candidateCount, 4);
+        expectEqual(result.variablePositionCount > 2, true);
+        expectEqual(result.isLikelyTrap, false);
+      },
+    },
   ];
 
   window.WordlemetryDiagnostics = {
@@ -370,6 +395,51 @@
           (a, b) =>
             b.entropyBits - a.entropyBits || b.patternCount - a.patternCount || a.largestBucketSize - b.largestBucketSize || a.guess.localeCompare(b.guess),
         );
+    },
+
+    checkPlayable(guesses) {
+      return guesses.map((guess) => {
+        const word = normalizeWord(guess);
+
+        return {
+          guess: word,
+          playable: validateDiagnosticGuess(word),
+        };
+      });
+    },
+
+    rankPlayableMetrics(guesses, candidates) {
+      const playableGuesses = this.checkPlayable(guesses)
+        .filter((entry) => entry.playable)
+        .map((entry) => entry.guess);
+
+      return this.rankMetrics(playableGuesses, candidates);
+    },
+
+    analyzeTrapGroup(candidates) {
+      const words = candidates.map(normalizeWord);
+      const width = words[0]?.length || 0;
+
+      const variablePositions = [];
+
+      for (let i = 0; i < width; i += 1) {
+        const letters = new Set(words.map((word) => word[i]));
+
+        if (letters.size > 1) {
+          variablePositions.push({
+            index: i,
+            letters: [...letters].sort(),
+            count: letters.size,
+          });
+        }
+      }
+
+      return {
+        candidateCount: words.length,
+        variablePositionCount: variablePositions.length,
+        variablePositions,
+        isLikelyTrap: words.length >= 4 && variablePositions.length <= 2,
+      };
     },
   };
 
