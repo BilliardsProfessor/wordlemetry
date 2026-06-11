@@ -2352,6 +2352,39 @@
   }
 
   // ============================================================================
+  // DIAGNOSTICS
+  // ============================================================================
+
+  function isDebugModeEnabled() {
+    return new URLSearchParams(window.location.search).has("debug");
+  }
+
+  function exposeDebugApiIfEnabled() {
+    if (!isDebugModeEnabled()) return;
+
+    window.WordlemetryDebug = {
+      state,
+      feedback,
+      patternKey,
+      patternEquals,
+      normalizeWord,
+      candidatesFromHistory,
+      deriveHardConstraintsFromHistory,
+      guessSatisfiesHardMode,
+      guessSatisfiesStrictMode,
+    };
+  }
+
+  function loadDiagnosticsIfEnabled() {
+    if (!isDebugModeEnabled()) return;
+
+    const script = document.createElement("script");
+    script.src = "diag.js";
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
+  // ============================================================================
   // BOOT / INIT
   // ============================================================================
 
@@ -2384,6 +2417,8 @@
     loadPersisted();
     ensureGrid();
     wireEvents();
+    exposeDebugApiIfEnabled();
+    loadDiagnosticsIfEnabled();
 
     await loadWords();
     resetSession(); // also renders
