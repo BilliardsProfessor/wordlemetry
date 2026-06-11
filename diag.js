@@ -178,6 +178,101 @@
         });
       },
     },
+    {
+      name: "coverage: identical candidates share one pattern",
+      run: () => {
+        const result = window.WordlemetryDiagnostics.coverage("crane", ["crane", "crane"]);
+        expectEqual(result.patternCount, 1);
+        expectArrayEqual(result.buckets["22222"], ["crane", "crane"]);
+      },
+    },
+    {
+      name: "coverage: distinct feedback patterns are counted",
+      run: () => {
+        const result = window.WordlemetryDiagnostics.coverage("crane", ["crane", "trace", "slate", "crony"]);
+        expectEqual(result.candidateCount, 4);
+        expectEqual(result.patternCount, 4);
+      },
+    },
+    {
+      name: "coverage: rankCoverage sorts by pattern count",
+      run: () => {
+        const ranked = window.WordlemetryDiagnostics.rankCoverage(["crane", "slate"], ["crane", "trace", "slate", "crony"]);
+
+        expectEqual(ranked[0].guess, "crane");
+        expectEqual(ranked[0].patternCount >= ranked[1].patternCount, true);
+      },
+    },
+    {
+      name: "coverage: reports bucket stats",
+      run: () => {
+        const result = window.WordlemetryDiagnostics.coverage("adieu", ["crane", "trace", "slate", "crony"]);
+
+        expectEqual(result.candidateCount, 4);
+        expectEqual(result.patternCount, 2);
+        expectEqual(result.largestBucketSize, 3);
+        expectEqual(result.averageBucketSize, 2);
+      },
+    },
+    {
+      name: "coverage: rankCoverage breaks ties by smaller largest bucket",
+      run: () => {
+        const ranked = window.WordlemetryDiagnostics.rankCoverage(["adieu", "zzzzz"], ["crane", "trace", "slate", "crony"]);
+
+        expectEqual(ranked[0].guess, "adieu");
+        expectEqual(ranked[0].patternCount, 2);
+        expectEqual(ranked[0].largestBucketSize, 3);
+        expectEqual(ranked[1].largestBucketSize, 4);
+      },
+    },
+    {
+      name: "entropy: single bucket has zero entropy",
+      run: () => {
+        const result = window.WordlemetryDiagnostics.coverage("zzzzz", ["crane", "trace", "slate", "crony"]);
+
+        expectEqual(result.entropyBits, 0);
+      },
+    },
+    {
+      name: "entropy: four even buckets produce two bits",
+      run: () => {
+        const result = window.WordlemetryDiagnostics.coverage("crane", ["crane", "trace", "slate", "crony"]);
+
+        expectEqual(result.entropyBits, 2);
+      },
+    },
+    {
+      name: "entropy: uneven buckets produce less than even split",
+      run: () => {
+        const result = window.WordlemetryDiagnostics.coverage("adieu", ["crane", "trace", "slate", "crony"]);
+
+        expectEqual(result.entropyBits < 2, true);
+        expectEqual(result.entropyBits > 0, true);
+      },
+    },
+    {
+      name: "entropy: rankEntropy sorts by entropy descending",
+      run: () => {
+        const ranked = window.WordlemetryDiagnostics.rankEntropy(["crane", "adieu"], ["crane", "trace", "slate", "crony"]);
+
+        expectEqual(ranked[0].guess, "crane");
+        expectEqual(ranked[0].entropyBits, 2);
+        expectEqual(ranked[1].guess, "adieu");
+      },
+    },
+    {
+      name: "metrics: rankMetrics includes combined bucket and entropy stats",
+      run: () => {
+        const ranked = window.WordlemetryDiagnostics.rankMetrics(["crane", "adieu"], ["crane", "trace", "slate", "crony"]);
+
+        expectEqual(ranked[0].guess, "crane");
+        expectEqual(ranked[0].candidateCount, 4);
+        expectEqual(ranked[0].entropyBits, 2);
+        expectEqual(ranked[0].patternCount, 4);
+        expectEqual(ranked[0].largestBucketSize, 1);
+        expectEqual(ranked[0].averageBucketSize, 1);
+      },
+    },
   ];
 
   window.WordlemetryDiagnostics = {
@@ -204,6 +299,77 @@
       console.groupEnd();
 
       return { passed, failed, results };
+    },
+
+    coverage(guess, candidates) {
+      const buckets = buildCoverageBuckets(guess, candidates);
+      const stats = getBucketStats(buckets);
+      const entropyBits = getEntropyBits(buckets, candidates.length);
+
+      return {
+        guess: normalizeWord(guess),
+        candidateCount: candidates.length,
+        patternCount: Object.keys(buckets).length,
+        largestBucketSize: stats.largestBucketSize,
+        averageBucketSize: stats.averageBucketSize,
+        entropyBits,
+        buckets,
+      };
+    },
+
+    rankCoverage(guesses, candidates) {
+      return guesses
+        .map((guess) => {
+          const result = this.coverage(guess, candidates);
+          return {
+            guess: result.guess,
+            candidateCount: result.candidateCount,
+            patternCount: result.patternCount,
+            largestBucketSize: result.largestBucketSize,
+            averageBucketSize: result.averageBucketSize,
+          };
+        })
+        .sort((a, b) => b.patternCount - a.patternCount || a.largestBucketSize - b.largestBucketSize || a.guess.localeCompare(b.guess));
+    },
+
+    rankEntropy(guesses, candidates) {
+      return guesses
+        .map((guess) => {
+          const result = this.coverage(guess, candidates);
+
+          return {
+            guess: result.guess,
+            candidateCount: result.candidateCount,
+            entropyBits: result.entropyBits,
+            patternCount: result.patternCount,
+            largestBucketSize: result.largestBucketSize,
+            averageBucketSize: result.averageBucketSize,
+          };
+        })
+        .sort(
+          (a, b) =>
+            b.entropyBits - a.entropyBits || b.patternCount - a.patternCount || a.largestBucketSize - b.largestBucketSize || a.guess.localeCompare(b.guess),
+        );
+    },
+
+    rankMetrics(guesses, candidates) {
+      return guesses
+        .map((guess) => {
+          const result = this.coverage(guess, candidates);
+
+          return {
+            guess: result.guess,
+            candidateCount: result.candidateCount,
+            entropyBits: roundMetric(result.entropyBits),
+            patternCount: result.patternCount,
+            largestBucketSize: result.largestBucketSize,
+            averageBucketSize: roundMetric(result.averageBucketSize),
+          };
+        })
+        .sort(
+          (a, b) =>
+            b.entropyBits - a.entropyBits || b.patternCount - a.patternCount || a.largestBucketSize - b.largestBucketSize || a.guess.localeCompare(b.guess),
+        );
     },
   };
 
@@ -274,5 +440,55 @@
         throw new Error(`Expected [${expected.join(", ")}], got [${actual.join(", ")}]`);
       }
     }
+  }
+
+  function buildCoverageBuckets(guess, candidates) {
+    const normalizedGuess = normalizeWord(guess);
+    const buckets = {};
+
+    for (const candidate of candidates) {
+      const normalizedCandidate = normalizeWord(candidate);
+      const key = patternKey(feedback(normalizedGuess, normalizedCandidate));
+
+      if (!buckets[key]) buckets[key] = [];
+      buckets[key].push(normalizedCandidate);
+    }
+
+    return buckets;
+  }
+  function getBucketStats(buckets) {
+    const sizes = Object.values(buckets).map((bucket) => bucket.length);
+
+    if (sizes.length === 0) {
+      return {
+        largestBucketSize: 0,
+        averageBucketSize: 0,
+      };
+    }
+
+    const largestBucketSize = Math.max(...sizes);
+    const total = sizes.reduce((sum, size) => sum + size, 0);
+
+    return {
+      largestBucketSize,
+      averageBucketSize: total / sizes.length,
+    };
+  }
+
+  function getEntropyBits(buckets, candidateCount) {
+    if (candidateCount === 0) return 0;
+
+    let entropyBits = 0;
+
+    for (const bucket of Object.values(buckets)) {
+      const probability = bucket.length / candidateCount;
+      entropyBits += -probability * Math.log2(probability);
+    }
+
+    return entropyBits;
+  }
+
+  function roundMetric(value) {
+    return Math.round(value * 1000) / 1000;
   }
 })();
