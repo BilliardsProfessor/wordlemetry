@@ -298,6 +298,51 @@
         expectEqual(result.isLikelyTrap, false);
       },
     },
+    {
+      name: "trap breakers: ranks guesses by trap-letter coverage",
+      run: () => {
+        const ranked = window.WordlemetryDiagnostics.rankTrapBreakers(
+          ["batch", "catch", "hatch", "match", "patch", "watch"],
+          ["crane", "chimp", "bumpy", "adieu"],
+        );
+
+        expectEqual(ranked[0].guess, "chimp");
+        expectEqual(ranked[0].trapLettersCovered, 4);
+        expectArrayEqual(ranked[0].coveredTrapLetters, ["c", "h", "m", "p"]);
+
+        expectEqual(ranked[1].guess, "bumpy");
+        expectEqual(ranked[1].trapLettersCovered, 3);
+        expectArrayEqual(ranked[1].coveredTrapLetters, ["b", "m", "p"]);
+      },
+    },
+    {
+      name: "trap breakers: playable ranking filters illegal guesses",
+      run: () => {
+        withTemporaryHistory([{ word: "crane", pattern: [2, 0, 0, 0, 0] }], () => {
+          deriveHardConstraintsFromHistory();
+
+          withTemporarySettings({ hardMode: true, strictMode: false }, () => {
+            const ranked = window.WordlemetryDiagnostics.rankPlayableTrapBreakers(["couch", "catch", "caddy", "cabin"], ["touch", "couch"]);
+
+            expectEqual(ranked.length, 1);
+            expectEqual(ranked[0].guess, "couch");
+          });
+        });
+      },
+    },
+    {
+      name: "trap breakers: includes trap-specific bucket metrics",
+      run: () => {
+        const ranked = window.WordlemetryDiagnostics.rankTrapBreakers(["batch", "catch", "hatch", "match", "patch", "watch"], ["chimp", "adieu"]);
+
+        expectEqual(ranked[0].guess, "chimp");
+        expectEqual(ranked[0].trapCandidateCount, 6);
+        expectEqual(ranked[0].trapPatternCount, 4);
+        expectEqual(ranked[0].trapLargestBucketSize, 2);
+        expectEqual(ranked[0].trapAverageBucketSize, 1.5);
+        expectEqual(ranked[0].trapEntropyBits, 1.918);
+      },
+    },
   ];
 
   window.WordlemetryDiagnostics = {
@@ -440,6 +485,47 @@
         variablePositions,
         isLikelyTrap: words.length >= 4 && variablePositions.length <= 2,
       };
+    },
+    rankTrapBreakers(trapCandidates, guesses) {
+      const trap = this.analyzeTrapGroup(trapCandidates);
+      const trapLetters = new Set(trap.variablePositions.flatMap((position) => position.letters));
+
+      return guesses
+        .map((guess) => {
+          const word = normalizeWord(guess);
+          const uniqueLetters = new Set(word);
+          const coveredTrapLetters = [...trapLetters].filter((letter) => uniqueLetters.has(letter)).sort();
+          const coverage = this.coverage(word, trapCandidates);
+
+          return {
+            guess: word,
+            trapCandidateCount: trap.candidateCount,
+            trapVariablePositionCount: trap.variablePositionCount,
+            trapLettersCovered: coveredTrapLetters.length,
+            coveredTrapLetters,
+            trapPatternCount: coverage.patternCount,
+            trapLargestBucketSize: coverage.largestBucketSize,
+            trapAverageBucketSize: roundMetric(coverage.averageBucketSize),
+            trapEntropyBits: roundMetric(coverage.entropyBits),
+            isLikelyTrap: trap.isLikelyTrap,
+          };
+        })
+        .sort(
+          (a, b) =>
+            b.trapLettersCovered - a.trapLettersCovered ||
+            b.trapEntropyBits - a.trapEntropyBits ||
+            b.trapPatternCount - a.trapPatternCount ||
+            a.trapLargestBucketSize - b.trapLargestBucketSize ||
+            a.guess.localeCompare(b.guess),
+        );
+    },
+
+    rankPlayableTrapBreakers(trapCandidates, guesses) {
+      const playableGuesses = this.checkPlayable(guesses)
+        .filter((entry) => entry.playable)
+        .map((entry) => entry.guess);
+
+      return this.rankTrapBreakers(trapCandidates, playableGuesses);
     },
   };
 
