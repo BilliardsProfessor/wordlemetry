@@ -1,0 +1,331 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Wordle Wizard</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Bump version numbers here to force refresh -->
+        <link rel="stylesheet" href="./styles.css?v=2026.4" />
+        <script src="./app.js?v=2026.4" defer></script>
+</head>
+
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <div>
+                <div class="title">Wordle Wizard</div>                
+            </div>
+        </div>
+        <div id="headerButtons">
+        <button id="settingsBtn" class="btn iconBtn" aria-label="Settings">
+            <i class="fa-solid fa-gear"></i>
+        </button>
+        <button id="helpBtn" class="btn iconBtn" aria-label="Help">
+            <i class="fa-solid fa-question"></i>
+        </button>
+        </div>
+
+</header>
+
+    <main class="wrap">
+        <!-- ENTRY VIEW -->
+        <section id="entryView" class="card">
+            <div class="sectionHead">
+                <div class="h2">Current word</div>
+                <div class="chipRow">
+                    <span class="modeLabel">Mode:</span>
+                
+                    <div class="chipHelpGroup">
+                        <button class="chip" id="modeChip" type="button">Normal</button>
+                        <button id="hardHelpBtn" class="helpIconBtn" type="button" aria-label="Hard mode help"
+                            title="Hard mode help">?</button>
+                    </div>
+                
+                    <div class="chipHelpGroup">
+                        <button class="chip relaxedmode" id="strictChip" type="button">Relaxed</button>
+                        <button id="strictHelpBtn" class="helpIconBtn" type="button" aria-label="Strict solver help"
+                            title="Strict solver help">?</button>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- Grid -->
+            <div class="grid" id="grid" aria-label="Word grid">
+                <!-- tiles injected -->
+            </div>
+
+            <!-- First turn: custom entry (native keyboard) -->
+            <div id="customEntry" class="customEntry hidden">
+                <div class="row">
+                    <input id="customWordInput" class="textInput" type="text" inputmode="text" autocomplete="off"
+                        autocapitalize="none" spellcheck="false" maxlength="5" placeholder="type 5 letters…" />
+                    <button id="customWordUseBtn" class="btn">Use</button>
+                </div>
+                <label class="checkRow">
+                    <input type="checkbox" id="saveStarterChk" />
+                    <span>Save as a starter word</span>
+                </label>
+            </div>
+
+            <!-- Actions -->
+            <div class="actionBar">
+                <div class="actionLeft">
+                    <button id="submitBtn" class="btn primary" disabled>Submit</button>
+                </div>
+            
+                <div class="actionRight">
+                    <button id="resetBtn2" class="btn ghost">Reset</button>
+                    <button id="enterOwnWordBtn" class="btn secondary">Custom</button>
+                </div>
+            </div>
+
+
+            <!-- Hard-mode helper message (appears only on invalid submit attempt) -->
+            <div id="hardModeMsg" class="helperMsg hidden" role="button" tabindex="0" aria-label="Hard mode help">
+                <!-- text injected -->
+            </div>
+
+            <!-- Suggestions area -->
+            <div class="divider"></div>
+
+            <div class="h3" id="suggestionsText">Suggestions (select a word to use for your next Wordle guess, then tap the letters to mark them) Select <i>More...</i> to see the full list.</div>
+
+            <!-- Post-turn top 5 + more -->
+            <div id="nextPills" class="pillRow hidden"></div>
+
+            <!-- Single-solution collapse card -->
+            <div id="collapseCard" class="collapse hidden">
+                <div class="collapseWord" id="collapseWord">—</div>
+                <div class="collapseScore" id="collapseScore">Score: —</div>
+                <div class="collapseText">If you’ve entered everything correctly, this should be the solution.</div>
+                <div class="row">
+                    <button id="solvedYesBtn" class="btn primary">Solved</button>
+                    <button id="solvedNoBtn" class="btn secondary">Something’s off</button>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div class="divider"></div>
+            <div class="h3">History</div>
+            <div id="history" class="history"></div>
+        </section>
+
+        <!-- RESULTS VIEW -->
+        <section id="resultsView" class="card hidden">
+            <div class="sectionHead">
+                <div class="h2">Candidates</div>
+                <button class="btn ghost" id="backBtn">Done</button>
+            </div>
+
+            <div class="sortRow" role="tablist" aria-label="Sort options">
+                <button class="seg active" id="sortLikelihood" role="tab" aria-selected="true">Best guess</button>
+                <button class="seg" id="sortInfo" role="tab" aria-selected="false">Most revealing</button>
+            </div>
+
+            <div class="small" id="countLine">—</div>
+
+            <div id="resultsList" class="results"></div>
+            <div id="resultsLoading" class="small muted hidden">Loading more…</div>
+        </section>
+    </main>
+
+    <!-- SETTINGS + HELP (full-viewport modal) -->
+    <div id="settingsHelpModal" class="modal hidden fullModal" role="dialog" aria-modal="true"
+        aria-label="Settings and Help">
+        <div class="fullModalCard glowFrame">
+            <div class="fullModalHead">
+                <div></div>
+                <div class="fullModalTitle" id="settingsHelpTitle">Settings</div>
+                <button id="settingsHelpDoneBtn" class="btn secondary">Done</button>
+            </div>
+    
+            <div class="fullModalBody">
+                <div class="sortRow" role="tablist" aria-label="Settings and Help tabs">
+                    <button class="seg active" id="settingsTabBtn" role="tab" aria-selected="true">Settings</button>
+                    <button class="seg" id="helpTabBtn" role="tab" aria-selected="false">Help</button>
+                </div>
+    
+                <div class="settingsHelpScroll" id="settingsHelpScroll">
+                    <!-- SETTINGS TAB -->
+                    <div id="settingsTabPanel" class="tabPanel">
+                        <div class="settingGroup">
+                            <label class="checkRow">
+                                <input type="checkbox" id="hardModeToggle" />
+                                <span>Hard mode</span>
+                            </label>
+                            <div class="small muted settingDesc">
+                                Must reuse confirmed greens/yellows in future guesses.
+                            </div>
+                        </div>
+    
+                        <div class="settingGroup">
+                            <label class="checkRow">
+                                <input type="checkbox" id="strictModeToggle" />
+                                <span>Strict solver</span>
+                            </label>
+                            <div class="small muted settingDesc">
+                                Prevents using letters you’ve marked gray.
+                            </div>
+                        </div>
+    
+                        <div class="divider"></div>
+    
+                        <button id="manageStartersFromSettingsBtn" class="btn">Manage starters</button>
+    
+                        <div class="divider"></div>
+    
+                        <button id="resetBtn" class="btn danger">Reset session</button>
+                    </div>
+    
+                    <!-- HELP TAB -->
+                    <div id="helpTabPanel" class="tabPanel hidden">
+                        <div class="h3" id="helpIntro">Help</div>
+                        <div class="small muted">
+                            (Copy later. This is a placeholder section.)
+                        </div>
+    
+                        <div class="divider"></div>
+    
+                        <div class="h3" id="helpHardMode">Hard mode</div>
+                        <div class="small muted">
+                            (Placeholder)
+                        </div>
+    
+                        <div class="divider"></div>
+    
+                        <div class="h3" id="helpStrictMode">Strict solver</div>
+                        <div class="small muted">
+                            (Placeholder)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HISTORY MODAL -->
+    <div id="historyModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="History turn details">
+        <div class="modalCard">
+            <div class="modalHead">
+                <div class="h2" id="historyModalTitle">Turn</div>
+                <button class="iconbtn" id="closeHistoryBtnX" aria-label="Close">✕</button>
+            </div>
+    
+            <div class="modalBody">
+                <div class="h3" id="historyModalWord"></div>
+    
+                <!-- Pattern preview (we'll inject tiles here) -->
+                <div id="historyModalPattern" class="histTiles" aria-label="Pattern"></div>
+    
+                <div class="small muted" id="historyModalBody"></div>
+            </div>
+    
+            <div class="row">
+                <button id="historyRestoreBtn" class="btn primary" disabled>Restore to this point</button>
+                <button id="closeHistoryBtn" class="btn secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM WORD MODAL -->
+    <div id="customModalOverlay" class="modalOverlay hidden">
+        <div class="modalCard" id="customModalCard" role="dialog" aria-modal="true" aria-label="Enter custom word">
+            <div class="modalRow">
+                <div class="modalTitle">Enter a word</div>
+                <button class="modalClose" id="customModalX" aria-label="Close">×</button>
+            </div>
+    
+            <div class="letterBoard" id="customLetterBoard">
+                <div class="letterBoardRow"><span class="letterBoardLetter">A</span><span
+                        class="letterBoardLetter">B</span><span class="letterBoardLetter">C</span><span
+                        class="letterBoardLetter">D</span><span class="letterBoardLetter">E</span><span
+                        class="letterBoardLetter">F</span><span class="letterBoardLetter">G</span><span
+                        class="letterBoardLetter">H</span><span class="letterBoardLetter">I</span><span
+                        class="letterBoardLetter">J</span><span class="letterBoardLetter">K</span><span
+                        class="letterBoardLetter">L</span><span class="letterBoardLetter">M</span></div>
+                <div class="letterBoardRow"><span class="letterBoardLetter">N</span><span
+                        class="letterBoardLetter">O</span><span class="letterBoardLetter">P</span><span
+                        class="letterBoardLetter">Q</span><span class="letterBoardLetter">R</span><span
+                        class="letterBoardLetter">S</span><span class="letterBoardLetter">T</span><span
+                        class="letterBoardLetter">U</span><span class="letterBoardLetter">V</span><span
+                        class="letterBoardLetter">W</span><span class="letterBoardLetter">X</span><span
+                        class="letterBoardLetter">Y</span><span class="letterBoardLetter">Z</span></div>
+            </div>
+            <div class="modalTiles" id="customModalTiles">
+                <div class="modalTile" data-idx="0"></div>
+                <div class="modalTile" data-idx="1"></div>
+                <div class="modalTile" data-idx="2"></div>
+                <div class="modalTile" data-idx="3"></div>
+                <div class="modalTile" data-idx="4"></div>
+            </div>
+            <div class="modalStatus" id="customModalStatus">Enter 5 letters</div>
+    
+            <label style="display:flex;gap:8px;align-items:center;font-size:13px;opacity:.95">
+                <input type="checkbox" id="customModalSaveStarterChk">
+                Save to My Starters
+            </label>
+    
+            <div class="modalActions">
+                <div></div>
+                <div class="modalBtns">
+                    <button id="customModalCancelBtn">Cancel</button>
+                    <button id="customModalClearBtn" type="button" class="modal-btn secondary">Clear</button>
+                    <button id="customModalSubmitBtn" disabled="">Use word</button>
+                </div>
+            </div>
+    
+            <input id="customModalInput" class="hiddenInput" autocomplete="off" autocapitalize="characters"
+                spellcheck="false" inputmode="text">
+        </div>
+    </div>
+
+    <!-- MANAGE STARTERS OVERLAY (full-viewport modal) -->
+    <div id="manageStartersModal" class="modal hidden fullModal" role="dialog" aria-modal="true"
+        aria-label="Manage starters">
+        <div class="fullModalCard glowFrame">
+            <div class="fullModalHead">
+                <button id="manageStartersCancelBtn" class="btn secondary">Cancel</button>
+                <div class="fullModalTitle">Manage starters</div>
+                <button id="manageStartersSaveBtn" class="btn primary" disabled>Save</button>
+            </div>
+    
+            <div class="row addRow">
+                <input id="starterAddInput" class="textInput" type="text" inputmode="text" autocomplete="off"
+                    autocapitalize="characters" placeholder="Add starter (5 letters)" maxlength="5" />
+                <button id="starterAddBtn" class="btn iconBtn" aria-label="Add starter">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+
+            </div>
+            
+            <div class="row starterBar">
+                <div class="starterBarLeft">
+                    <button id="starterSortBtn" class="btn">Sort A–Z</button>
+                    <span class="starterBarDivider" aria-hidden="true"></span>
+                    <button id="starterRestoreBtn" class="btn danger">Restore defaults</button>
+                </div>
+                <div class="starterBarRight" id="starterCountText">0 / 15</div>
+            </div>
+            
+            <div class="manageScroll" id="manageStartersScroll">
+                <div id="manageStartersList" class="manageList"></div>
+            </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- TOAST HOST -->
+    <div id="toastHost" class="toastHost" aria-live="polite"></div>
+
+    <!-- CONFETTI CANVAS -->
+    <canvas id="confetti" class="confetti"></canvas>
+
+</body>
+
+</html>
