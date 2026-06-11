@@ -3,33 +3,33 @@
 <html lang="en">
 
 <head>
-    <title>Wordle Wizard</title>
+    <title>Wordlemetry</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
+
     <!-- Bump version numbers here to force refresh -->
-        <link rel="stylesheet" href="./styles.css?v=2026.4" />
-        <script src="./app.js?v=2026.4" defer></script>
+    <link rel="stylesheet" href="./styles.css?v=2026.4" />
+    <script src="./app.js?v=2026.4" defer></script>
 </head>
 
 <body>
     <header class="topbar">
         <div class="brand">
             <div>
-                <div class="title">Wordle Wizard</div>                
+                <div class="title">Wordlemetry</div>
             </div>
         </div>
         <div id="headerButtons">
-        <button id="settingsBtn" class="btn iconBtn" aria-label="Settings">
-            <i class="fa-solid fa-gear"></i>
-        </button>
-        <button id="helpBtn" class="btn iconBtn" aria-label="Help">
-            <i class="fa-solid fa-question"></i>
-        </button>
+            <button id="settingsBtn" class="btn iconBtn" aria-label="Settings">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button id="helpBtn" class="btn iconBtn" aria-label="Help">
+                <i class="fa-solid fa-question"></i>
+            </button>
         </div>
 
-</header>
+    </header>
 
     <main class="wrap">
         <!-- ENTRY VIEW -->
@@ -38,13 +38,13 @@
                 <div class="h2">Current word</div>
                 <div class="chipRow">
                     <span class="modeLabel">Mode:</span>
-                
+
                     <div class="chipHelpGroup">
                         <button class="chip" id="modeChip" type="button">Normal</button>
                         <button id="hardHelpBtn" class="helpIconBtn" type="button" aria-label="Hard mode help"
                             title="Hard mode help">?</button>
                     </div>
-                
+
                     <div class="chipHelpGroup">
                         <button class="chip relaxedmode" id="strictChip" type="button">Relaxed</button>
                         <button id="strictHelpBtn" class="helpIconBtn" type="button" aria-label="Strict solver help"
@@ -78,7 +78,7 @@
                 <div class="actionLeft">
                     <button id="submitBtn" class="btn primary" disabled>Submit</button>
                 </div>
-            
+
                 <div class="actionRight">
                     <button id="resetBtn2" class="btn ghost">Reset</button>
                     <button id="enterOwnWordBtn" class="btn secondary">Custom</button>
@@ -94,7 +94,8 @@
             <!-- Suggestions area -->
             <div class="divider"></div>
 
-            <div class="h3" id="suggestionsText">Suggestions (select a word to use for your next Wordle guess, then tap the letters to mark them) Select <i>More...</i> to see the full list.</div>
+            <div class="h3" id="suggestionsText">Suggestions (select a word to use for your next Wordle guess, then tap
+                the letters to mark them) Select <i>More...</i> to see the full list.</div>
 
             <!-- Post-turn top 5 + more -->
             <div id="nextPills" class="pillRow hidden"></div>
@@ -144,13 +145,13 @@
                 <div class="fullModalTitle" id="settingsHelpTitle">Settings</div>
                 <button id="settingsHelpDoneBtn" class="btn secondary">Done</button>
             </div>
-    
+
             <div class="fullModalBody">
                 <div class="sortRow" role="tablist" aria-label="Settings and Help tabs">
                     <button class="seg active" id="settingsTabBtn" role="tab" aria-selected="true">Settings</button>
                     <button class="seg" id="helpTabBtn" role="tab" aria-selected="false">Help</button>
                 </div>
-    
+
                 <div class="settingsHelpScroll" id="settingsHelpScroll">
                     <!-- SETTINGS TAB -->
                     <div id="settingsTabPanel" class="tabPanel">
@@ -163,7 +164,7 @@
                                 Must reuse confirmed greens/yellows in future guesses.
                             </div>
                         </div>
-    
+
                         <div class="settingGroup">
                             <label class="checkRow">
                                 <input type="checkbox" id="strictModeToggle" />
@@ -173,32 +174,32 @@
                                 Prevents using letters you’ve marked gray.
                             </div>
                         </div>
-    
+
                         <div class="divider"></div>
-    
+
                         <button id="manageStartersFromSettingsBtn" class="btn">Manage starters</button>
-    
+
                         <div class="divider"></div>
-    
+
                         <button id="resetBtn" class="btn danger">Reset session</button>
                     </div>
-    
+
                     <!-- HELP TAB -->
                     <div id="helpTabPanel" class="tabPanel hidden">
                         <div class="h3" id="helpIntro">Help</div>
                         <div class="small muted">
                             (Copy later. This is a placeholder section.)
                         </div>
-    
+
                         <div class="divider"></div>
-    
+
                         <div class="h3" id="helpHardMode">Hard mode</div>
                         <div class="small muted">
                             (Placeholder)
                         </div>
-    
+
                         <div class="divider"></div>
-    
+
                         <div class="h3" id="helpStrictMode">Strict solver</div>
                         <div class="small muted">
                             (Placeholder)
@@ -216,16 +217,16 @@
                 <div class="h2" id="historyModalTitle">Turn</div>
                 <button class="iconbtn" id="closeHistoryBtnX" aria-label="Close">✕</button>
             </div>
-    
+
             <div class="modalBody">
                 <div class="h3" id="historyModalWord"></div>
-    
+
                 <!-- Pattern preview (we'll inject tiles here) -->
                 <div id="historyModalPattern" class="histTiles" aria-label="Pattern"></div>
-    
+
                 <div class="small muted" id="historyModalBody"></div>
             </div>
-    
+
             <div class="row">
                 <button id="historyRestoreBtn" class="btn primary" disabled>Restore to this point</button>
                 <button id="closeHistoryBtn" class="btn secondary">Close</button>
@@ -240,7 +241,7 @@
                 <div class="modalTitle">Enter a word</div>
                 <button class="modalClose" id="customModalX" aria-label="Close">×</button>
             </div>
-    
+
             <div class="letterBoard" id="customLetterBoard">
                 <div class="letterBoardRow"><span class="letterBoardLetter">A</span><span
                         class="letterBoardLetter">B</span><span class="letterBoardLetter">C</span><span
@@ -265,12 +266,12 @@
                 <div class="modalTile" data-idx="4"></div>
             </div>
             <div class="modalStatus" id="customModalStatus">Enter 5 letters</div>
-    
+
             <label style="display:flex;gap:8px;align-items:center;font-size:13px;opacity:.95">
                 <input type="checkbox" id="customModalSaveStarterChk">
                 Save to My Starters
             </label>
-    
+
             <div class="modalActions">
                 <div></div>
                 <div class="modalBtns">
@@ -279,7 +280,7 @@
                     <button id="customModalSubmitBtn" disabled="">Use word</button>
                 </div>
             </div>
-    
+
             <input id="customModalInput" class="hiddenInput" autocomplete="off" autocapitalize="characters"
                 spellcheck="false" inputmode="text">
         </div>
@@ -294,7 +295,7 @@
                 <div class="fullModalTitle">Manage starters</div>
                 <button id="manageStartersSaveBtn" class="btn primary" disabled>Save</button>
             </div>
-    
+
             <div class="row addRow">
                 <input id="starterAddInput" class="textInput" type="text" inputmode="text" autocomplete="off"
                     autocapitalize="characters" placeholder="Add starter (5 letters)" maxlength="5" />
@@ -303,7 +304,7 @@
                 </button>
 
             </div>
-            
+
             <div class="row starterBar">
                 <div class="starterBarLeft">
                     <button id="starterSortBtn" class="btn">Sort A–Z</button>
@@ -312,13 +313,13 @@
                 </div>
                 <div class="starterBarRight" id="starterCountText">0 / 15</div>
             </div>
-            
+
             <div class="manageScroll" id="manageStartersScroll">
                 <div id="manageStartersList" class="manageList"></div>
             </div>
 
-            </div>
         </div>
+    </div>
     </div>
     <!-- TOAST HOST -->
     <div id="toastHost" class="toastHost" aria-live="polite"></div>

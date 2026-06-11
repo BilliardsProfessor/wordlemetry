@@ -1453,8 +1453,7 @@
 
       const sp = document.createElement("div");
       sp.className = "scorePill";
-      sp.textContent =
-        state.ui.sortMode === "info" ? `probe ${item.score.toFixed(2)}` : `common ${item.score.toFixed(2)}`;
+      sp.textContent = state.ui.sortMode === "info" ? `probe ${item.score.toFixed(2)}` : `common ${item.score.toFixed(2)}`;
 
       left.appendChild(w);
       left.appendChild(sp);
@@ -1539,8 +1538,7 @@
     // Score candidates for suggestions
     const scoreKey = state.settings.rankMode === "probe" ? "probeScore" : "commonScore";
 
-    const scoredLikelihood =
-      state.candidates.length && state.history.length > 0 ? scorePrecomputed(state.candidates, scoreKey) : [];
+    const scoredLikelihood = state.candidates.length && state.history.length > 0 ? scorePrecomputed(state.candidates, scoreKey) : [];
 
     // Collapse card
     renderCollapseCard(scoredLikelihood);
@@ -1640,13 +1638,6 @@
       state.ui.hardMsgVisible = false;
       state.ui.hardMsgUrgent = false;
     }
-  }
-
-  function openExplainModal(missingLetters) {
-    const letters = missingLetters.join(", ");
-    $("explainBody").textContent =
-      `Because you’re in hard mode, the letters ${letters} are required. Tap them until they turn yellow or green, then submit your result.`;
-    $("explainModal").classList.remove("hidden");
   }
 
   function renderCustomModalWord() {
@@ -2091,7 +2082,7 @@
     }
     if (confirm(msg)) {
       resetSession();
-      closeSettings();
+      closeSettingsHelpModal();
     }
   }
 
@@ -2132,10 +2123,6 @@
     if (state.ui.view === "results" && state.ui.resultsMode === "starters") {
       showResults("starters");
     }
-  }
-
-  function onCloseExplainClick() {
-    $("explainModal").classList.add("hidden");
   }
 
   let historyModalIdx = null;
@@ -2209,8 +2196,9 @@
     historyRestoreArmed = false;
 
     $("historyRestoreBtn").textContent = "Restore to this point";
-    $("historyModalBody").textContent =
-      `${candidatesAfterTurn(historyModalIdx).toLocaleString()} candidates remaining after this guess.`;
+    $("historyRestoreBtn").disabled = true;
+    $("historyRestoreBtn").removeAttribute("data-idx");
+    $("historyModalBody").textContent = "";
 
     $("historyModal").classList.add("hidden");
   }
@@ -2236,16 +2224,6 @@
     return pool.length;
   }
 
-  function onSettingsModalBackdropClick(e) {
-    if (e.target !== e.currentTarget) return;
-    closeSettings();
-  }
-
-  function onExplainModalBackdropClick(e) {
-    if (e.target !== e.currentTarget) return;
-    $("explainModal").classList.add("hidden");
-  }
-
   function closeCustomModalOnOverlayClick(e) {
     if (e.target.id === "customModalOverlay") closeCustomModal();
   }
@@ -2259,7 +2237,6 @@
     if ($("customModalSaveStarterChk").checked) {
       state.settings.starterWord = word;
       savePersisted();
-      $("starterWordSetting").value = state.settings.starterWord;
     }
 
     const v = validateCustomModalWord(word);
@@ -2341,8 +2318,6 @@
     $("customModalCard").addEventListener("pointerdown", focusCustomModalInput);
     $("customModalCard").addEventListener("click", focusCustomModalInput);
     $("customModalSaveStarterChk").addEventListener("change", focusCustomModalInput);
-    $("manageStartersFromSettingsBtn")?.addEventListener("click", openManageStartersModal);
-    $("manageStartersFromMoreBtn")?.addEventListener("click", openManageStartersModal);
     // Manage starters overlay
     $("starterAddInput").addEventListener("input", onStarterAddInput);
     $("starterAddBtn").addEventListener("click", onStarterAdd);

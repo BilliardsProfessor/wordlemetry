@@ -1,4 +1,4 @@
-# Wordle Wizard – Backlog
+# Wordlemetry – Backlog
 
 This backlog tracks confirmed follow-up work and known improvements.
 Items are ordered roughly by immediacy, not priority guarantees.
@@ -74,7 +74,7 @@ Completed items have been removed to keep this actionable.
 ## Naming / Distribution (Optional, Future)
 
 - **Decide final public name**
-  - “Wordle Wizard” currently feels strong and intentional
+  - “Wordlemetry” currently feels strong and intentional
   - Re-evaluate only if publishing or sharing widely
 
 - **Basic README / landing copy**

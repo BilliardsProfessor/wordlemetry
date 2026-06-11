@@ -10,3 +10,6 @@ __pycache__/
 # Local/temp
 *.log
 .env
+
+# Patches
+*.patch

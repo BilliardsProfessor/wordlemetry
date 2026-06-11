@@ -1,13 +1,13 @@
-# Wordle Wizard
+Wordlemetry# Wordlemetry
 
-Wordle Wizard is a mobile-first web app designed to help you play **Wordle more thoughtfully and efficiently**.  
+Wordlemetry is a mobile-first web app designed to help you play **Wordle more thoughtfully and efficiently**.  
 It does not play the game for you — it helps you _reason_ through it.
 
 The app tracks your guesses and feedback, applies Wordle’s rules correctly (including Hard and Strict modes), and suggests strong next guesses based on what you already know.
 
 ---
 
-## What Wordle Wizard Does
+## What Wordlemetry Does
 
 - Suggests high-quality next guesses based on:
   - known green/yellow/gray letters
@@ -33,7 +33,7 @@ This is a **thinking aid**, not an answer oracle.
 - **Strict**
   - Enforces the tightest interpretation of Hard Mode rules
 
-Modes affect **suggestions only** — Wordle Wizard never alters your actual guesses or history.
+Modes affect **suggestions only** — Wordlemetry never alters your actual guesses or history.
 
 ---
 
@@ -73,7 +73,7 @@ Starter words affect **suggestions only** — they never affect history or rule 
 - It does **not** scrape or use NYT’s answer list
 - It does **not** automatically play Wordle for you
 
-Wordle Wizard works the way a careful human would — just faster and more consistently.
+Wordlemetry works the way a careful human would — just faster and more consistently.
 
 ---
 
@@ -88,7 +88,7 @@ Wordle Wizard works the way a careful human would — just faster and more consi
 
 ## Philosophy
 
-Wordle Wizard exists to make Wordle **more interesting**, not less.
+Wordlemetry exists to make Wordle **more interesting**, not less.
 
 Good Wordle play is about:
 
