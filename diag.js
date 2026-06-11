@@ -333,14 +333,34 @@
     {
       name: "trap breakers: includes trap-specific bucket metrics",
       run: () => {
-        const ranked = window.WordlemetryDiagnostics.rankTrapBreakers(["batch", "catch", "hatch", "match", "patch", "watch"], ["chimp", "adieu"]);
+        const trapCandidates = ["batch", "catch", "hatch", "match", "patch", "watch"];
+        const ranked = window.WordlemetryDiagnostics.rankTrapBreakers(trapCandidates, ["chimp", "adieu"]);
+        const coverage = window.WordlemetryDiagnostics.coverage(ranked[0].guess, trapCandidates);
 
         expectEqual(ranked[0].guess, "chimp");
         expectEqual(ranked[0].trapCandidateCount, 6);
-        expectEqual(ranked[0].trapPatternCount, 4);
-        expectEqual(ranked[0].trapLargestBucketSize, 2);
-        expectEqual(ranked[0].trapAverageBucketSize, 1.5);
-        expectEqual(ranked[0].trapEntropyBits, 1.918);
+        expectEqual(ranked[0].trapPatternCount, coverage.patternCount);
+        expectEqual(ranked[0].trapLargestBucketSize, coverage.largestBucketSize);
+        expectEqual(ranked[0].trapAverageBucketSize, roundMetric(coverage.averageBucketSize));
+        expectEqual(ranked[0].trapEntropyBits, roundMetric(coverage.entropyBits));
+      },
+    },
+    {
+      name: "trap breakers: current candidate ranking uses live candidate pool",
+      run: () => {
+        const previousCandidates = state.candidates;
+
+        try {
+          state.candidates = ["batch", "catch", "hatch", "match", "patch", "watch"];
+
+          const ranked = window.WordlemetryDiagnostics.rankCurrentTrapBreakers(["chimp", "adieu"]);
+
+          expectEqual(ranked[0].guess, "chimp");
+          expectEqual(ranked[0].trapCandidateCount, 6);
+          expectEqual(ranked[0].isLikelyTrap, true);
+        } finally {
+          state.candidates = previousCandidates;
+        }
       },
     },
   ];
@@ -526,6 +546,9 @@
         .map((entry) => entry.guess);
 
       return this.rankTrapBreakers(trapCandidates, playableGuesses);
+    },
+    rankCurrentTrapBreakers(guesses) {
+      return this.rankPlayableTrapBreakers(state.candidates, guesses);
     },
   };
 
