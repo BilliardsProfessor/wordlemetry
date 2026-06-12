@@ -550,6 +550,71 @@
     rankCurrentTrapBreakers(guesses) {
       return this.rankPlayableTrapBreakers(state.candidates, guesses);
     },
+
+    getCurrentClueCounts() {
+      const lockedGreenPositions = new Set();
+      const requiredLetterCounts = new Map();
+
+      for (const turn of state.history) {
+        const word = normalizeWord(turn.word);
+        const matchedCountsThisTurn = new Map();
+
+        for (let i = 0; i < turn.pattern.length; i += 1) {
+          const value = turn.pattern[i];
+
+          if (value === 2) {
+            lockedGreenPositions.add(i);
+          }
+
+          if (value === 1 || value === 2) {
+            const letter = word[i];
+            matchedCountsThisTurn.set(letter, (matchedCountsThisTurn.get(letter) || 0) + 1);
+          }
+        }
+
+        for (const [letter, count] of matchedCountsThisTurn) {
+          requiredLetterCounts.set(letter, Math.max(requiredLetterCounts.get(letter) || 0, count));
+        }
+      }
+
+      const requiredLetters = [...requiredLetterCounts.keys()].sort();
+      const requiredLetterTotal = [...requiredLetterCounts.values()].reduce((sum, count) => sum + count, 0);
+
+      return {
+        lockedGreenCount: lockedGreenPositions.size,
+        requiredLetterCount: requiredLetters.length,
+        requiredLetterTotal,
+        knownClueCount: lockedGreenPositions.size + requiredLetterTotal,
+        requiredLetters,
+        requiredLetterCounts: Object.fromEntries([...requiredLetterCounts.entries()].sort()),
+      };
+    },
+
+    shouldCheckTraps() {
+      const candidateCount = state.candidates.length;
+      const guessesUsed = state.history.length;
+      const { lockedGreenCount, requiredLetterCount, requiredLetterTotal, knownClueCount, requiredLetters, requiredLetterCounts } = this.getCurrentClueCounts();
+      const reasons = [];
+
+      if (candidateCount < 300) reasons.push("candidate count below 300");
+      if (guessesUsed >= 3) reasons.push("three or more guesses used");
+      if (state.settings.hardMode && lockedGreenCount >= 2) reasons.push("hard mode with two or more locked greens");
+
+      return {
+        shouldCheck: reasons.length > 0,
+        candidateCount,
+        guessesUsed,
+        lockedGreenCount,
+        requiredLetterCount,
+        requiredLetterTotal,
+        knownClueCount,
+        requiredLetters,
+        requiredLetterCounts,
+        hardMode: state.settings.hardMode,
+        strictMode: state.settings.strictMode,
+        reasons,
+      };
+    },
   };
 
   console.info("Wordlemetry diagnostics enabled. Run WordlemetryDiagnostics.run() in the console.");
